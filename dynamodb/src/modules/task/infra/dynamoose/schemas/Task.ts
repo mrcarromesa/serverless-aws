@@ -93,6 +93,7 @@ export default dynamoose.model<Task>('Tasks', schema, {
   },
 
   create: process.env.STAGE === 'local',
+  expires: { ttl: 20 * 60 * 1000 },
   // Active only after created table in prod and is in prod env
   // create: false,
 });

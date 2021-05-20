@@ -55,7 +55,7 @@ const serverlessConfiguration: AWS = {
     apiKeys: [
       {
         name: 'DynamoDBExample',
-        value: 'mykey',
+        value: 'mykeyasdf898asfda90sdfjijklajsdfa9a',
         description:
           'Essa api key é utilizada para acessar o serviço de dynamoDBExample',
       },
@@ -256,6 +256,10 @@ const serverlessConfiguration: AWS = {
         Type: 'AWS::DynamoDB::Table',
         Properties: {
           TableName: 'Tasks',
+          TimeToLiveSpecification: {
+            AttributeName: 'ttl',
+            Enabled: true,
+          },
           ProvisionedThroughput: {
             ReadCapacityUnits: 1,
             WriteCapacityUnits: 1,

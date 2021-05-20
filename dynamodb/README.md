@@ -434,4 +434,131 @@ public async findTaskByKeys({
 
 ## DynamoDB - Índices secundários
 
-- Posso ter índices secundários, para dar mais flexibilidade a aplicação e tornar a consulta um pouco mais rápida
+- Posso ter índices secundários, para dar mais flexibilidade a aplicação e tornar a consulta um pouco mais rápida;
+
+- Os índices podem ser globais ou locais, em geral utilizamos os globais;
+
+- A craiação desses itens pode ser visto em `src/modules/task/infra/dynamoose/schemas/Task.ts`:
+
+```ts
+created_by_user_id: {
+  type: String,
+  index: {
+    name: 'idx_key_of_created_by_user_id_task', // <-- É utilizado na consulta
+    global: true,
+  },
+},
+
+designated_to_user_id: {
+  type: String,
+  index: {
+    name: 'idx_key_of_designated_to_user_id_task', // <-- É utilizado na consulta
+    global: true,
+  },
+},
+```
+
+- Exemplo de utilização de consulta com um índice, no arquivo `src/modules/task/infra/dynamoose/repositories/TaskRepository.ts`:
+
+```ts
+public async findTasksByUserCreatedId(
+    user_id: string,
+  ): Promise<IResultRegister> {
+  return Task.scan()
+    .where('created_by_user_id')
+    .eq(user_id)
+    .using('idx_key_of_created_by_user_id_task') // <-- O nome do índice conforme definido na criação dele
+    .all()
+    .exec();
+}
+```
+
+---
+
+## DynamoDB - Criar e editar registros
+
+- Para criar um registro podemos fazer conforme o exemplo em `src/modules/task/infra/dynamoose/repositories/TaskRepository.ts`:
+
+```ts
+public async create({
+  id,
+  category,
+  created_by_user_id,
+  designated_to_user_id,
+  title,
+  description,
+  attachments,
+}: ITaskSaveDTO): Promise<ITaskSchemaDTO> {
+  return (Task.create({
+    id,
+    category,
+    created_by_user_id,
+    designated_to_user_id,
+    title,
+    description: description || '',
+    attachments: attachments || [],
+  }) as unknown) as ITaskSchemaDTO;
+}
+```
+
+- Utilizamos o comando `create` e informamos as propriedades conforme definidas nos schema em `src/modules/task/infra/dynamoose/schemas/Task.ts`.
+
+- Para atualizar um registro o procedimento é bem parecido, porém utilizamos o comando `update`:
+
+```ts
+public async update({
+  id,
+  category,
+  created_by_user_id,
+  designated_to_user_id,
+  title,
+  description,
+  attachments,
+}: ITaskSaveDTO): Promise<ITaskSchemaDTO> {
+  return (Task.update({
+    id,
+    category,
+    created_by_user_id,
+    designated_to_user_id,
+    title,
+    description,
+    attachments,
+  }) as unknown) as ITaskSchemaDTO;
+}
+```
+
+- Precisamos informar o `hashKey`, nesse caso o `category` e o `rangeKey` nesse caso o `id`, e por fim os demais campos que desejamos atualizar.
+
+---
+
+## DynamoDB - remover registros
+
+- Para remover apenas um registro podemos utilizar o comando delete conforme `src/modules/task/infra/dynamoose/repositories/TaskRepository.ts`:
+
+```ts
+public async delete({ category, id }: ITaskKeysDTO): Promise<void> {
+  await Task.delete({
+    category,
+    id,
+  });
+}
+```
+
+- Nesse caso informamos o `hashKey` que é o `category` e o `rangeKey` que é o `id`.
+
+- Para remover mais de um registro utilizamos o comando `batchDelete`:
+
+```ts
+public async batchDelete(data: ITaskKeysDTO[]): Promise<void> {
+  await Task.batchDelete(data);
+}
+```
+
+- Basta informar um array com todos os `hashKey` e `rangeKey` que desejamos remover, porém a aws só permite remover no máximo 25 registros por vez.
+
+---
+
+## DynamoDB - paginação
+
+
+## DynamoDB - streams
