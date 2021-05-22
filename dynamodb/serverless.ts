@@ -254,6 +254,7 @@ const serverlessConfiguration: AWS = {
     Resources: {
       TasksTable: {
         Type: 'AWS::DynamoDB::Table',
+        DeletionPolicy: 'Retain',
         Properties: {
           TableName: 'Tasks',
           TimeToLiveSpecification: {
@@ -267,7 +268,7 @@ const serverlessConfiguration: AWS = {
           // caso for sob demanda remover o ProvisionedThroughput inteiro e adicionar o seguinte:
           // BillingMode: 'PAY_PER_REQUEST',
           StreamSpecification: {
-            StreamViewType: 'NEW_IMAGE',
+            StreamViewType: 'NEW_IMAGE', // NEW_IMAGE | OLD_IMAGE | NEW_AND_OLD_IMAGES | KEYS_ONLY
           },
           AttributeDefinitions: [
             {
