@@ -1,0 +1,62 @@
+{
+    "env": {
+        "es6": true,
+        "node": true,
+        "jest": true
+    },
+    "extends": [
+        "airbnb-base",
+        "plugin:@typescript-eslint/recommended",
+        "prettier/@typescript-eslint",
+        "plugin:prettier/recommended"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint",
+        "prettier",
+        "simple-import-sort"
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "class-methods-use-this": "off",
+      "import/prefer-default-export": "off",
+      "no-useless-constructor": "off",
+      "no-console": ["error", { "allow": ["error"] }],
+      "camelcase": "off",
+      "func-names": "off",
+      "@typescript-eslint/camelcase": "off",
+      "no-template-curly-in-string": "off",
+      "@typescript-eslint/no-unused-vars" : ["error",{ "argsIgnorePattern": "_"}],
+      "@typescript-eslint/explicit-function-return-type": [
+        "warn",
+        {
+          "allowExpressions": true,
+          "allowConciseArrowFunctionExpressionsStartingWithVoid": true
+        }
+      ],
+      "import/no-extraneous-dependencies": "off",
+      "no-underscore-dangle": "off",
+      "import/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          "ts": "never"
+        }
+      ],
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error"
+    },
+    "settings": {
+      "import/resolver": {
+        "typescript": {}
+      }
+    }
+}
