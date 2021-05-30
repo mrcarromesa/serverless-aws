@@ -199,7 +199,7 @@ const serverlessConfiguration: AWS = {
           LifecycleConfiguration: {
             Rules: [
               {
-                // Prefix: '/tmp',
+                Prefix: 'tmp/',
                 Status: 'Enabled',
                 ExpirationInDays: 1,
               },
