@@ -10,6 +10,7 @@ export const schema = Yup.array()
       designated_to_user_id: Yup.string().required(),
       title: Yup.string().required(),
       description: Yup.string(),
+      last_key: Yup.number(),
       attachments: Yup.array().of(
         Yup.object().shape({
           file_name: Yup.string().required(),

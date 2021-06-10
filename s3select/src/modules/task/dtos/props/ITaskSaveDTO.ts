@@ -5,4 +5,6 @@ export default interface ITaskSaveDTO {
   designated_to_user_id: string;
   title: string;
   description?: string;
+
+  last_key: number;
 }

@@ -33,6 +33,7 @@ describe('AddTasks', () => {
         designated_to_user_id: 'user',
         title: 'Task Example',
         description: 'Description from task',
+        last_key: 1,
       },
     ]);
 
@@ -61,6 +62,7 @@ describe('AddTasks', () => {
         designated_to_user_id: 'user',
         title: 'Task Example',
         description: 'Description from task',
+        last_key: 1,
       },
     ]);
 

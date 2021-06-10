@@ -88,6 +88,25 @@ const serverlessConfiguration: AWS = {
         },
         {
           http: {
+            method: 'get',
+            path: '/task',
+            private: true,
+            request: {
+              parameters: {
+                querystrings: {
+                  limit: true,
+                  last_key: true,
+                },
+              },
+            },
+            cors: {
+              origin: '*',
+              maxAge: 86400,
+            },
+          },
+        },
+        {
+          http: {
             method: 'delete',
             path: '/task',
             private: true,

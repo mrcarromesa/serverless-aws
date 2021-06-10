@@ -151,3 +151,80 @@ return s3Select.selectFileContent<ITaskSaveDTO>({
 
 - Esse trecho chama o metodo `selectFileContent`, passando a query no formato SQL.
 - Mais detalhes de como é chamado esse recurso na aws, verifique o arquivo `src/shared/container/providers/StorageProvider/implementations/S3Provider.ts`
+
+
+## Paginação e count items
+
+- no s3 select não há paginação de uma forma nativa, para tal é necessário adicionar um campo que sirva como contador...
+
+```json
+[{
+	"category": "Evolução3",
+	"created_by_user_id": "uuid2",
+	"designated_to_user_id": "uuid2",
+	"title": "Task Dynamo 2",
+	"description": "2Objetivo ...",
+	"last_key": 1
+},
+ {
+		"category": "Evolução3",
+		"created_by_user_id": "uuid3",
+		"designated_to_user_id": "uuid3",
+		"title": "Task Dynamo 3",
+		"description": "3Objetivo ...",
+		"last_key": 2
+	}
+]
+```
+
+- No caso acima adicionamos um item chamado last_key, e para realizarmos uma paginação através dele utilizamos o service `src/modules/task/services/query/ListTaskPaginated.service.ts`:
+
+```ts
+const result = await s3Select.selectFileContent<ITaskSaveDTO>({
+  file_path: 'tmp/tasks',
+  bucket: process.env.S3_BUCKET_S3_SELECT || '',
+  query: `select s.* from s3object s WHERE s.last_key > ${last_key} LIMIT ${limit} `,
+});
+```
+
+- Se o last_key for 0 e o limit for 1 ele retornará:
+
+```json
+[{
+	"category": "Evolução3",
+	"created_by_user_id": "uuid2",
+	"designated_to_user_id": "uuid2",
+	"title": "Task Dynamo 2",
+	"description": "2Objetivo ...",
+	"last_key": 1
+}]
+```
+
+- Se o last_key for 1 e o limit for 1 ele retornará:
+
+```json
+[{
+		"category": "Evolução3",
+		"created_by_user_id": "uuid3",
+		"designated_to_user_id": "uuid3",
+		"title": "Task Dynamo 3",
+		"description": "3Objetivo ...",
+		"last_key": 2
+}]
+```
+
+- Também podemos retornar o número total de registro dessa forma conforme `src/modules/task/services/query/ListTaskPaginated.service.ts`:
+
+```ts
+const count = await s3Select.selectFileContent<ICountResult>({
+  file_path: 'tmp/tasks',
+  bucket: process.env.S3_BUCKET_S3_SELECT || '',
+  query: `SELECT count(*) FROM s3object s WHERE s IS NOT MISSING`,
+});
+```
+
+- Ele retornará:
+
+```js
+[{ _1: 2 }]
+```
