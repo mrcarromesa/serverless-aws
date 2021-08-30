@@ -1,0 +1,93 @@
+{
+  "name": "websocket-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "eject": "react-scripts eject",
+    "test": "react-app-rewired test --env=jest-environment-jsdom-sixteen",
+    "test:summary": "react-app-rewired test --watchAll=false --env=jest-environment-jsdom-sixteen --coverage --collectCoverageFrom=src/pages/**/*.tsx --collectCoverageFrom=!src/*.tsx --coverageReporters=\"json-summary\" --coverageDirectory=__tests__/coverage",
+    "test:coverage": "react-app-rewired test --watchAll=false --env=jest-environment-jsdom-sixteen --coverage --collectCoverageFrom=src/pages/**/*.tsx --collectCoverageFrom=!src/*.tsx",
+    "watch": "tsc --watch --noEmit --project './tsconfig.json'",
+    "lint": "eslint --ext .jsx --ext .tsx --ext .js --ext .ts --ignore-pattern 'src/assets/*' ./src --no-error-on-unmatched-pattern",
+    "compile": "tsc --noEmit --project tsconfig.json"
+  },
+  "pre-commit": [
+    "compile"
+  ],
+  "jest": {
+    "verbose": true,
+    "moduleNameMapper": {
+      "^~/(.*)": "<rootDir>/src/$1"
+    },
+    "setupFiles": [
+      "<rootDir>/jest-set-env-vars.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/__tests__/mock/"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.11.4",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^12.0.0",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "axios": "^0.21.1",
+    "formik": "^2.2.8",
+    "polished": "^4.1.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-icons": "^4.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.3",
+    "styled-components": "^5.3.0",
+    "typescript": "^4.1.2",
+    "web-vitals": "^1.0.1",
+    "yup": "^0.32.9"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@types/react-router-dom": "^5.1.7",
+    "@types/styled-components": "^5.1.9",
+    "@typescript-eslint/eslint-plugin": "^4.24.0",
+    "@typescript-eslint/parser": "^4.24.0",
+    "axios-mock-adapter": "^1.19.0",
+    "babel-jest": "26.6.0",
+    "babel-plugin-root-import": "^6.6.0",
+    "customize-cra": "^1.0.0",
+    "eslint": "^7.26.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-import-resolver-babel-plugin-root-import": "^1.1.1",
+    "eslint-import-resolver-typescript": "^2.4.0",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jsx-a11y": "^6.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.20.0",
+    "eslint-plugin-react-hooks": "^2.3.0",
+    "jest-environment-jsdom-sixteen": "^2.0.0",
+    "jest-websocket-mock": "^2.2.1",
+    "mock-socket": "^9.0.3",
+    "pre-commit": "^1.2.2",
+    "prettier": "^2.3.0",
+    "react-app-rewired": "^2.1.8"
+  }
+}
