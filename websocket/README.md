@@ -6,7 +6,7 @@
 
 - Projeto de um simples chat que exibe o status se os usuários das demais pontas estão digitando, bem como troca de mensagens em real-time
 
-- [Frontend](https://github.com/mrcarromesa/serverless-aws/websocket-frontend)
+- [Frontend](https://github.com/mrcarromesa/serverless-aws/tree/master/websocket-frontend)
 
 ## Detalhes sobre a estrutura do projeto
 
@@ -14,7 +14,7 @@
 
 ## Como testar
 
-- Realizar deploy desse projeto, e utilizar o [Frontend](https://github.com/mrcarromesa/serverless-aws/websocket-frontend), para testar
+- Realizar deploy desse projeto, e utilizar o [Frontend](https://github.com/mrcarromesa/serverless-aws/tree/master/websocket-frontend), para testar
 
 ## WEBSOCKET - Configuração necessária no serverless.ts
 
@@ -104,4 +104,4 @@ serverless deploy dev
 
 ![deploy](./readme/assets/deploy.png)
 
-só copiar o endpoint que aparecer para vc após realizar o seu deploy, e começar a realizar as chamadas, utilizando o projeto [Frontend](https://github.com/mrcarromesa/serverless-aws/websocket-frontend)
+só copiar o endpoint que aparecer para vc após realizar o seu deploy, e começar a realizar as chamadas, utilizando o projeto [Frontend](https://github.com/mrcarromesa/serverless-aws/tree/master/websocket-frontend)
