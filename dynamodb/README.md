@@ -60,6 +60,30 @@ public async findTaskByKeys({
 }
 ```
 
+- Uma rangekey (chave de classificação) permite também orderna os registros em uma consulta `query` utilizando o `sort`:
+
+```ts
+public async findTasksByCategoryAndDateAndSort(
+    category: string,
+    limit: number,
+    start_key?: Record<string, unknown>,
+  ): Promise<IResultRegister> {
+    if (start_key) {
+      return Task.query('category')
+        .eq(category)
+        .sort(SortOrder.descending)
+        .limit(limit)
+        .startAt(start_key)
+        .exec();
+    }
+    return Task.query('category')
+      .eq(category)
+      .sort(SortOrder.descending)
+      .limit(limit)
+      .exec();
+  }
+```
+
 ---
 
 ## DynamoDB - Índices secundários
@@ -103,6 +127,91 @@ public async findTasksByUserCreatedId(
 }
 ```
 
+- Juntamente com o indice podemos adicionar uma rangekey para nosso indice global para permitir ordenar os registros quando buscamos por eles!
+
+- Considerando que temos no schema em `src/modules/task/infra/dynamoose/schemas/Task.ts`:
+
+```ts
+const schema = new dynamoose.Schema(
+  {
+    category: {
+      type: String,
+      hashKey: true,
+    },
+
+    id: {
+      type: String,
+      rangeKey: true,
+    },
+
+    // ... more columns
+
+    user_delivered: {
+      type: String,
+      required: false,
+      index: {
+        name: 'idx_key_of_user_delivered',
+        global: true,
+        rangeKey: 'delivery_date',
+      },
+    },
+
+    delivery_date: Date,
+
+    status: String,
+  },
+
+  {
+    timestamps: {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    },
+  },
+);
+```
+
+- Podemos consultar pelo user_delivered (indice global) e ordenar pelo rangekey do indice `idx_key_of_user_delivered` que nesse caso é o `delivery_date`, dessa forma a consulta fica assim conforme em: `src/modules/task/infra/dynamoose/repositories/TaskRepository.ts`
+
+```ts
+public async findTasksByUserDeliveredSortered(
+    user_delivered: string,
+    limit: number,
+    start_key?: Record<string, unknown>,
+  ): Promise<IResultRegister> {
+    if (start_key) {
+      return Task.query('user_delivered')
+        .eq(user_delivered)
+        .sort(SortOrder.ascending)
+        .using('idx_key_of_user_delivered')
+        .limit(limit)
+        .startAt(start_key)
+        .exec();
+    }
+
+    return Task.query('user_delivered')
+      .eq(user_delivered)
+      .sort(SortOrder.ascending)
+      .using('idx_key_of_user_delivered')
+      .limit(limit)
+      .exec();
+  }
+```
+
+**IMPORTANTE**
+
+- Para permitir consultar registros pelo indice precisamos das seguintes permissões:
+
+```ts
+{
+  Effect: 'Allow',
+  Action: ['dynamodb:Scan', 'dynamodb:Query'],
+  Resource:
+    'arn:aws:dynamodb:us-east-1:*:table/TABLE_NAME/index/*',
+},
+```
+
+- No lugar de TABLE_NAME adicionar o nome da tabela
+- E então estamos dando todas as permissões para consultar pelo indice
 ---
 
 ## DynamoDB - Criar e editar registros
@@ -270,6 +379,14 @@ resources: {
             AttributeName: 'designated_to_user_id',
             AttributeType: 'S',
           },
+          {
+            AttributeName: 'user_delivered',
+            AttributeType: 'S',
+          },
+          {
+            AttributeName: 'delivery_date',
+            AttributeType: 'N',
+          },
         ],
         // Hash e Range Keys
         KeySchema: [
@@ -313,6 +430,26 @@ resources: {
               {
                 KeyType: 'HASH',
                 AttributeName: 'designated_to_user_id',
+              },
+            ],
+          },
+          {
+            IndexName: 'idx_key_of_user_delivered',
+            Projection: {
+              ProjectionType: 'ALL',
+            },
+            ProvisionedThroughput: {
+              WriteCapacityUnits: 5,
+              ReadCapacityUnits: 10,
+            },
+            KeySchema: [
+              {
+                KeyType: 'HASH',
+                AttributeName: 'user_delivered',
+              },
+              {
+                KeyType: 'RANGE', // Definindo a rangekey (chave de classificação) para o indice global
+                AttributeName: 'delivery_date',
               },
             ],
           },

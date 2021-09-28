@@ -35,6 +35,7 @@ class TasksController {
       created_by_user_id,
       designated_to_user_id,
       title,
+      date,
       attachments = [],
       description = '',
     } = req.body;
@@ -44,6 +45,7 @@ class TasksController {
       created_by_user_id,
       designated_to_user_id,
       title,
+      date,
       attachments,
       description,
     });

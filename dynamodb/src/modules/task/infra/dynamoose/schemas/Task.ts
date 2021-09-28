@@ -18,6 +18,10 @@ class Task extends Document implements ITaskSchemaDTO {
 
   attachments?: IAttachmentsDTO[];
 
+  user_delivered: string;
+
+  delivery_date: Date;
+
   status?: string;
 
   created_at: Date;
@@ -74,6 +78,18 @@ const schema = new dynamoose.Schema(
         },
       ],
     },
+
+    user_delivered: {
+      type: String,
+      required: false,
+      index: {
+        name: 'idx_key_of_user_delivered',
+        global: true,
+        rangeKey: 'delivery_date',
+      },
+    },
+
+    delivery_date: Date,
 
     status: String,
   },

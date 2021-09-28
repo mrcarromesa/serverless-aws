@@ -16,15 +16,17 @@ export default class AddTaskService {
     created_by_user_id,
     designated_to_user_id,
     title,
+    date,
     attachments = [],
     description = '',
   }: Omit<ITaskSaveDTO, 'id'>): Promise<ITaskSchemaDTO> {
     return this.taskRepository.create({
-      id: uuid(),
+      id: `${new Date(String(date)).getTime()}|${uuid()}`,
       category,
       created_by_user_id,
       designated_to_user_id,
       title,
+      date,
       attachments,
       description,
     });

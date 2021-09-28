@@ -5,6 +5,8 @@ export default interface ITaskSchemaDTO {
   category: string;
   created_by_user_id: string;
   designated_to_user_id: string;
+  user_delivered?: string;
+  delivery_date?: Date;
   title: string;
   description?: string;
   attachments?: IAttachmentsDTO[];

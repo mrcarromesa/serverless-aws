@@ -76,6 +76,28 @@ const serverlessConfiguration: AWS = {
       events: [
         {
           http: {
+            method: 'post',
+            path: '/task/_search',
+            private: true,
+            cors: {
+              origin: '*',
+              maxAge: 86400,
+            },
+          },
+        },
+        {
+          http: {
+            method: 'post',
+            path: '/task/delivery/_search',
+            private: true,
+            cors: {
+              origin: '*',
+              maxAge: 86400,
+            },
+          },
+        },
+        {
+          http: {
             method: 'get',
             path: '/task',
             private: true,
@@ -201,6 +223,25 @@ const serverlessConfiguration: AWS = {
         },
         {
           http: {
+            method: 'put',
+            path: '/task/{category}/{id}/delivery',
+            private: true,
+            request: {
+              parameters: {
+                paths: {
+                  category: true,
+                  id: true,
+                },
+              },
+            },
+            cors: {
+              origin: '*',
+              maxAge: 86400,
+            },
+          },
+        },
+        {
+          http: {
             method: 'delete',
             path: '/task/{category}/{id}',
             private: true,
@@ -287,6 +328,14 @@ const serverlessConfiguration: AWS = {
               AttributeName: 'designated_to_user_id',
               AttributeType: 'S',
             },
+            {
+              AttributeName: 'user_delivered',
+              AttributeType: 'S',
+            },
+            {
+              AttributeName: 'delivery_date',
+              AttributeType: 'N',
+            },
           ],
           KeySchema: [
             {
@@ -328,6 +377,26 @@ const serverlessConfiguration: AWS = {
                 {
                   KeyType: 'HASH',
                   AttributeName: 'designated_to_user_id',
+                },
+              ],
+            },
+            {
+              IndexName: 'idx_key_of_user_delivered',
+              Projection: {
+                ProjectionType: 'ALL',
+              },
+              ProvisionedThroughput: {
+                WriteCapacityUnits: 5,
+                ReadCapacityUnits: 10,
+              },
+              KeySchema: [
+                {
+                  KeyType: 'HASH',
+                  AttributeName: 'user_delivered',
+                },
+                {
+                  KeyType: 'RANGE',
+                  AttributeName: 'delivery_date',
                 },
               ],
             },
@@ -374,6 +443,7 @@ const serverlessConfiguration: AWS = {
                       'dynamodb:PutItem',
                       'dynamodb:DeleteItem',
                       'dynamodb:Scan',
+                      'dynamodb:Query',
                       'dynamodb:UpdateItem',
                       'dynamodb:DescribeTable',
                       'dynamodb:CreateTable',
@@ -385,6 +455,12 @@ const serverlessConfiguration: AWS = {
                       'dynamodb:ListStreams',
                     ],
                     Resource: 'arn:aws:dynamodb:us-east-1:*:table/Tasks',
+                  },
+                  {
+                    Effect: 'Allow',
+                    Action: ['dynamodb:Scan', 'dynamodb:Query'],
+                    Resource:
+                      'arn:aws:dynamodb:us-east-1:*:table/Tasks/index/*',
                   },
                 ],
               },
