@@ -228,3 +228,171 @@ const count = await s3Select.selectFileContent<ICountResult>({
 ```js
 [{ _1: 2 }]
 ```
+
+### Trigger
+
+- Trigger via function mais simples! em serverless.ts:
+
+```ts
+// ... MORE ...
+functions: {
+  trigger_lambda: {
+    tags: {
+      function: 's3select-example-trigger-lambda',
+    },
+    handler: 'src/triggersLambda/processTrigger.process',
+    events: [
+      {
+        s3: {
+          bucket: '${self:custom.s3SelectBucketName}', // Informa o nome do bucket aqui
+          existing: true,
+          event: 's3:ObjectCreated:*',
+          // event: 's3:ObjectRemoved:*', // s3:ObjectRemoved:* || s3:ObjectCreated:*, s3:ObjectCreated:* quando não informado
+        },
+      },
+    ],
+  },
+}
+// ... MORE ...
+```
+
+- Trigger via sqs mais complexo... em _serverless_trigger_sqs.ts:
+
+```ts
+// ... MORE ...
+Resources: {
+  UploadS3SelectBucket: {
+    Type: 'AWS::S3::Bucket',
+    DependsOn: ['QueuePolicySQS'], // <--- Informar a politica de filas
+    Properties: {
+      // ... MORE ...
+      NotificationConfiguration: { // <--- Informar como será notificado
+        QueueConfigurations: [
+          {
+            Event: 's3:ObjectCreated:*', // event: 's3:ObjectRemoved:*', // s3:ObjectRemoved:* || s3:ObjectCreated:*,
+            Queue: { // Adiciona o arn do sqs
+              'Fn::Join': [
+                ':',
+                [
+                  'arn:aws:sqs',
+                  { Ref: 'AWS::Region' },
+                  { Ref: 'AWS::AccountId' },
+                  'SQSExampleProcessTasksQueue',
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    }
+  },
+  QueuePolicySQS: { // <---- Politica de filas
+    Type: 'AWS::SQS::QueuePolicy',
+    Properties: {
+      PolicyDocument: {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: {
+              Service: 's3.amazonaws.com',
+            },
+            Action: ['sqs:sendMessage'],
+            Resource: 'arn:aws:sqs:us-east-1:*:SQSExampleProcessTasksQueue',
+            Condition: {
+              ArnLike: { // Qual bucket que deve disparar a notificação
+                'aws:SourceArn':
+                  'arn:aws:s3:*:*:${self:custom.s3SelectBucketName}',
+              },
+            },
+          },
+        ],
+      },
+      Queues: [
+        { // Precisa ser o URL
+          'Fn::Join': [
+            '',
+            [
+              'https://sqs:',
+              { Ref: 'AWS::Region' },
+              '.amazonaws.com/',
+              { Ref: 'AWS::AccountId' },
+              '/SQSExampleProcessTasksQueue',
+            ],
+          ],
+        },
+      ],
+    },
+  },
+}
+// ... MORE ...
+```
+
+- Basicamente precisamos informar o `DependsOn: ['QueuePolicySQS'], ` no resource do bucket, adicionar a `NotificationConfiguration` nas props do bucket criar a politica que foi informada no `DependsOn`, realmente muito mais informações para chamar uma, ou mais filas...
+
+- Já utilizando na function a primeira opção `trigger_lambda`, é bem mais simples e a chamada das filas poderemos fazer pela função chamada no handler
+
+- O Payload recebido via FILA (SQS) será como esse:
+
+```json
+[{
+    "messageId": "UUID",
+    "receiptHandle": "base64",
+    "body": "{\"Records\":[{\"eventVersion\":\"2.1\",\"eventSource\":\"aws:s3\",\"awsRegion\":\"REGION\",\"eventTime\":\"2021-10-26T12:56:45.124Z\",\"eventName\":\"ObjectCreated:Put\",\"userIdentity\":{\"principalId\":\"AWS:...\"},\"requestParameters\":{\"sourceIPAddress\":\"IP\"},\"responseElements\":{\"x-amz-request-id\":\"...\",\"x-amz-id-2\":\"...\"},\"s3\":{\"s3SchemaVersion\":\"1.0\",\"configurationId\":\"...\",\"bucket\":{\"name\":\"BUCKET_NAME\",\"ownerIdentity\":{\"principalId\":\"...\"},\"arn\":\"arn:aws:s3:::BUCKET_NAME\"},\"object\":{\"key\":\"tmp/tasks\",\"size\":1302,\"eTag\":\"...\",\"sequencer\":\"...\"}}}]}",
+    "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1635253006527",
+        "SenderId": "ID",
+        "ApproximateFirstReceiveTimestamp": "1635253006531"
+    },
+    "messageAttributes": {},
+    "md5OfBody": "md5",
+    "eventSource": "aws:sqs",
+    "eventSourceARN": "arn:aws:sqs:REGION:ACCOUNT_ID:SQSExampleProcessTasksQueue",
+    "awsRegion": "REGION"
+}]
+
+```
+
+- Já o payload recebido via function o primeiro caso `trigger_lambda` será esse:
+
+```json
+{
+    "Records": [
+        {
+            "eventVersion": "2.1",
+            "eventSource": "aws:s3",
+            "awsRegion": "us-east-1",
+            "eventTime": "2021-10-26T13:33:45.965Z",
+            "eventName": "ObjectCreated:Put",
+            "userIdentity": {
+                "principalId": "..."
+            },
+            "requestParameters": {
+                "sourceIPAddress": "IP"
+            },
+            "responseElements": {
+                "x-amz-request-id": "...",
+                "x-amz-id-2": "..."
+            },
+            "s3": {
+                "s3SchemaVersion": "1.0",
+                "configurationId": "...",
+                "bucket": {
+                    "name": "BUCKET_NAME",
+                    "ownerIdentity": {
+                        "principalId": "..."
+                    },
+                    "arn": "arn:aws:s3:::..."
+                },
+                "object": {
+                    "key": "tmp/tasks",
+                    "size": 1304,
+                    "eTag": "...",
+                    "sequencer": "..."
+                }
+            }
+        }
+    ]
+}
+```
