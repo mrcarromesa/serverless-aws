@@ -23,9 +23,21 @@ const serverlessConfiguration: AWS = {
       dev: 'dev',
     },
     sharedBucketName: 'lambda-artifacts-123409abdvlgf',
+    autoswagger: {
+      generateSwaggerOnDeploy: true,
+      typefiles: ['./src/types/task.d.ts'],
+      // swaggerFiles?: ['./doc/endpointFromPlugin.json', './doc/iCannotPutThisInHttpEvent.json', './doc/aDefinitionWithoutTypescript.json']
+      // swaggerPath?: 'string'
+      // apiKeyName: 'x-api-key',
+      customApiKeysHeader: ['x-api-key', 'Authorization'],
+      // useStage?: true | false
+      basePath: '/local',
+      // schemes?: ['http', 'https', 'ws', 'wss']
+    },
   },
 
   plugins: [
+    'serverless-auto-swagger',
     'serverless-webpack',
     'serverless-offline',
     'serverless-dotenv-plugin',
@@ -83,7 +95,8 @@ const serverlessConfiguration: AWS = {
               origin: '*',
               maxAge: 86400,
             },
-          },
+            bodyType: 'ITasK',
+          } as any,
         },
         {
           http: {
@@ -101,6 +114,25 @@ const serverlessConfiguration: AWS = {
             method: 'get',
             path: '/task',
             private: true,
+            // Exemplo de queryString para utilizar com o swagger
+            // queryStringParameters: {
+            //   bob: {
+            //     required: true,
+            //     type: 'string',
+            //     description: 'bob',
+            //   },
+            //   count: {
+            //     required: false,
+            //     type: 'array',
+            //     arrayItemsType: 'integer',
+            //   },
+            // },
+            response: {
+              200: {
+                description: 'successful API Response',
+                bodyType: 'Tasks',
+              },
+            } as any,
             cors: {
               origin: '*',
               maxAge: 86400,

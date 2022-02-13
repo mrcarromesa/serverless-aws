@@ -655,3 +655,73 @@ export default dynamoose.model<Task>('Tasks', schema, {
   // create: false,
 });
 ```
+
+
+---
+
+## Swagger
+
+- Instalar o pacote:
+
+```shell
+yarn add serverless-auto-swagger -D
+```
+
+- Adicionar nos plugins do `serverless.ts`:
+
+```ts
+plugins: [
+    'serverless-auto-swagger',
+    'serverless-webpack',
+    'serverless-offline',
+    'serverless-dotenv-plugin',
+  ],
+```
+
+- Adicionar antes do webpack e do offline!
+
+- No arquivo `webpack.config.js` adicionar o `.js` nas extensions:
+
+
+```js
+extensions: ['.mjs', '.json', '.ts', '.js'],
+```
+
+- No arquivo `serverless.ts` adicionar em `custom`:
+
+```ts
+autoswagger: {
+  generateSwaggerOnDeploy: true,
+  typefiles: ['./src/types/task.d.ts'],
+  // swaggerFiles?: ['./doc/endpointFromPlugin.json', './doc/iCannotPutThisInHttpEvent.json', './doc/aDefinitionWithoutTypescript.json']
+  // swaggerPath?: 'string'
+  // apiKeyName: 'x-api-key',
+  customApiKeysHeader: ['x-api-key', 'Authorization'], // escolha quais headers são necessários, funcionalidade ainda em revisão: https://github.com/SamWSoftware/serverless-auto-swagger/pull/35
+  // useStage?: true | false
+  basePath: '/local',
+  // schemes?: ['http', 'https', 'ws', 'wss']
+},
+```
+
+- Exemplo de como utilizar com um post:
+
+```ts
+{
+  http: {
+    method: 'post',
+    path: '/task/_search',
+    private: true,
+    cors: {
+      origin: '*',
+      maxAge: 86400,
+    },
+    bodyType: 'ITasK', // Deve existir dentro do arquivo informado na prop custom.autoswagger.typefiles como uma interface ou type!
+  } as any,
+},
+```
+
+- O `bodyType` terá os campos necessários para gerados no swagger, deve ser um type ou interface dentro do arquivo `.ts` definido em `custom.autoswagger.typefiles` dentro do `serverless.ts`
+
+- Mais informações em [Vídeo tutorial](https://www.youtube.com/watch?v=vkTIM9MQ5Wc)
+- Mais informações em [Repositório oficial](https://github.com/SamWSoftware/serverless-auto-swagger)
+
